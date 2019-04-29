@@ -1,0 +1,148 @@
+//import needed package here
+//import groovy.json.JsonSlurper
+pipeline {
+          agent any
+          options {
+                    timeout(time: 1, unit: 'HOURS')          
+                  }
+          parameters {
+                      string(name: 'Id', defaultValue: '0034', description: 'Enter the ID')
+                      string(name: 'Rfcdest', defaultValue: 'ARDRFC100', description: 'Enter the RFC Destination')
+                      booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value (boolean sample option)')
+                      choice(name: 'CHOICE', choices: ['SAP ECC', 'S/4HANA'], description: 'Choice sample option')
+                      //password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password (sample option)')
+                      //file(name: "FILE", description: "Choose a file to upload (sample option)")
+                     }
+          stages {
+                  stage('SAP ECC') {
+                  when {
+                        expression { params.CHOICE == 'SAP ECC' }
+                       }  
+                  steps {
+                      sh 'whoami'
+                      echo 'This is a GET API test'
+                      echo "Id is ${params.Id}"
+                      echo "RFC Dest. is ${params.Rfcdest}"
+                      script {
+                          def payload = """{
+                          \"Id\": \"${params.Id}\",
+                          \"Rfcdest\": \"${params.Rfcdest}\",
+                          \"Mins\": \"5\",
+                          \"Parameter\":
+                         [{
+                          \"Id\": \"${params.Id}\",
+                          \"Fnam\": \"\", \"Fval\": \"\"
+                          }],
+                          \"Return\": [],
+                          \"Data\": []
+                         }"""
+                          //GET X-CSRF-TOKEN and SAP_SESSIONID
+                          def myurl = 'https://WIN-ARTL-DEV.accenture.com/sap/opu/odata/ACNLQD/ZATH_O_API_AOH_INS_SRV/AthosIdSet'
+			// Use httpRequest Jenkins Plugin	
+                          def response = httpRequest consoleLogResponseBody: true,
+                          authentication: 'sap_authentication',  
+                          url: 'https://WIN-ARTL-DEV.accenture.com/sap/opu/odata/ACNLQD/ZATH_O_API_AOH_INS_SRV/AthosIdSet',
+                          customHeaders:[[name:'x-csrf-token', value:"fetch"]]
+                        // Print response  
+			  println('Status: '+response.status)
+                          println('Response: '+response.content)
+                          println('Headers: '+response.headers)
+                          println('Token: '+response.headers.get("x-csrf-token"))
+                          println('Cookie: '+response.headers.get("set-cookie"))
+                          def ReceivedToken = response.headers.get("x-csrf-token").toString()
+                          def Cookie = response.headers.get("set-cookie").toString()
+                         // def SESSION = Cookie.tokenize(',')[1]
+                         //def NewSESSION = SESSION.substring(0, SESSION.length() - 1)
+			//Tokenize set-cookie header response and remove trailing "]"
+                          def SESSION = Cookie.tokenize(',')[1].substring(0, Cookie.tokenize(',')[1].length() - 1)
+                          // remove the beginning "[" and trailing "]" encapsulation
+                          def Token = ReceivedToken.substring(1, ReceivedToken.length() - 1) 
+                          println('SESSION: '+"${SESSION}")
+                          println(Token)
+                          println(Cookie)
+                          //def NewToken = Token.substring(1,25)
+                          //def BytesToken = AnotherToken.getBytes("UTF-8")
+                          
+                          //POST
+                         // sleep(1)
+                         def postresponse = httpRequest consoleLogResponseBody: true,
+                         url: 'https://WIN-ARTL-DEV.accenture.com/sap/opu/odata/ACNLQD/ZATH_O_API_AOH_INS_SRV/AthosIdSet',
+                         authentication: 'sap_authentication',
+                         requestBody: payload,
+                         httpMode: 'POST',
+                         acceptType: 'APPLICATION_JSON',
+                         contentType: 'APPLICATION_JSON',
+                         outputFile: 'out.json',
+                         ignoreSslErrors: true,
+                         //responseHandle: 'STRING',
+                         customHeaders: [[maskValue: false, name:'X-Csrf-Token',value:"${Token}"],[name: 'X-Requested-With',value: 'XMLHttpRequest'],[name:'Cookie',value:"${SESSION}"],[name:'DataServiceVersion', value:'2.0' ]]
+                         //def json = new JsonSlurper().parseText(postresponse.content)
+                         //echo "${json.message.keySet()}"
+                         //echo "${json}"
+                         //println('data '+json.message.keySet())                        
+                         println('PostStatus: '+postresponse.status)
+                         println('PostResponse: '+postresponse.content)
+                         println('PostHeaders: '+postresponse.headers) 
+                         //def reader = new FileReader("${env.WORKSPACE}"+'/out.json')
+                         //def ui = new JsonSlurper().parse(reader)
+                         //ui.items.each { println it.uri }
+                         //println ui.items[0].results
+                      } // end script clause
+                      echo 'test'
+                    
+                  } // end steps clause
+                } // end stage clause
+  
+                  stage('S/4HANA Stage') {
+                  when {
+                        expression { params.CHOICE == 'S/4HANA' }
+                       }  
+                 /* input {
+                        message "Should we continue?"
+                        ok "Yes, we should."
+                        submitter "jenkins,veneraldo"
+                         parameters {
+                        string(name: 'CSRF', defaultValue: 'Mr Apelo', description: 'What is the CSRF?')
+                                  }
+                       } */
+                  steps {
+                      echo 'S/4HANA'
+                       script {
+                        def payload = """{
+                          \"Id\": \"${params.Id}\",
+                          \"Rfcdest\": \"${params.Rfcdest}\",
+                          \"Mins\": \"5\",
+                          \"Parameter\":
+                         [{
+                          \"Id\": \"${params.Id}\",
+                          \"Fnam\": \"\", \"Fval\": \"\"
+                          }],
+                          \"Return\": [],
+                          \"Data\": []
+                         }"""
+                        def postresponse = httpRequest consoleLogResponseBody: true,
+                         url: 'https://WIN-ARTL-DEV.accenture.com/sap/opu/odata/ACNLQD/ZATH_O_API_AOH_INS_SRV/AthosIdSet',
+                         authentication: 'sap_authentication',
+                         requestBody: payload,
+                         httpMode: 'POST',
+                         acceptType: 'APPLICATION_JSON_UTF8',
+                         contentType: 'APPLICATION_JSON_UTF8',
+                         ignoreSslErrors: true,
+                         customHeaders: [[name:'Authorization', value:"Basic ${auth}"],[maskValue: false, name:'x-csrf-token',value:"${CSRF}"]]
+                         println('PostStatus: '+postresponse.status)
+                          println('PostResponse: '+postresponse.content)
+                          println('PostHeaders: '+postresponse.headers) 
+                       } // end script clause 
+                     } // end steps clause
+                  } // end stage clause
+              
+          } // end stages clause
+          post { 
+               always { 
+                      echo 'I will always say Hello again!'
+                      sh 'ls -lrta'
+                      sh 'cat out.json'
+                      cleanWs()
+                      }
+               }    
+    }
