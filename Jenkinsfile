@@ -20,14 +20,15 @@ pipeline {
                       sh 'whoami'
                       sh 'ls -lrta'
                       echo 'This is a GET API test'
-                      echo "Id is ${params.Id}"
+                      echo "OBJECT_NAME is ${params.OBJECT_NAME}"
                       echo "RFC Dest. is ${params.Rfcdest}"
                     
                   } // end steps clause
                  } //end SAP ECC stage clause
                   stage('UNIT TEST') {
                   steps {
-                      build job: 'sap-cli-test', parameters: [string(name: 'SAP_ASHOST', value: '35.174.22.86'), string(name: 'SAP_USER', value: 'DEVELOPER'),  string(name: 'SAP_CLIENT', value: '001'), string(name: 'SAP_SSL', value: 'NO'), string(name: 'SAP_PORT', value: '8000'), string(name: 'OBJECT_NAME', value: 'ZTESTING_ABAPGIT'), string(name: 'OBJECT_TYPE', value: 'program')] 
+                      echo "object name is ${params.OBJECT_NAME}"
+                      build job: 'sap-cli-test', parameters: [string(name: 'SAP_ASHOST', value: '35.174.22.86'), string(name: 'SAP_USER', value: 'DEVELOPER'),  string(name: 'SAP_CLIENT', value: '001'), string(name: 'SAP_SSL', value: 'NO'), string(name: 'SAP_PORT', value: '8000'), string(name: 'OBJECT_NAME', value: "${params.OBJECT_NAME}"), string(name: 'OBJECT_TYPE', value: 'program')] 
                   }
                    
                 } // end stage clause
