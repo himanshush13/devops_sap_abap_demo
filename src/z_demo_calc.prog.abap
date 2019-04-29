@@ -41,7 +41,7 @@ CLASS lcl_test IMPLEMENTATION.
     l_result = lo_calc->calc_sum( 3 ).
 
     cl_aunit_assert=>assert_equals(
-      exp = 6
+      exp = 9
       act = l_result
       msg = 'Wrong result'
     ).
