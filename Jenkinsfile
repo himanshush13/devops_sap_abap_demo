@@ -4,7 +4,7 @@ pipeline {
                     timeout(time: 1, unit: 'HOURS')          
                   }
           parameters {
-                      string(name: 'OBJECT_NAME', defaultValue: 'ZTEST', description: 'Enter the OBJECT NAME')
+                      string(name: 'OBJECT_NAME', defaultValue: 'Z_DEMO_CALC', description: 'Enter the OBJECT NAME')
                       string(name: 'Rfcdest', defaultValue: 'ARDRFC100', description: 'Enter the RFC Destination')
                       booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value (boolean sample option)')
                       choice(name: 'OBJECT_TYPE', choices: ['program', 'package', 'class'], description: 'Object types option')
