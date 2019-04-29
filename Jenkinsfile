@@ -24,6 +24,12 @@ pipeline {
                       echo "RFC Dest. is ${params.Rfcdest}"
                     
                   } // end steps clause
+                 } //end SAP ECC stage clause
+                  stage('UNIT TEST') {
+                  steps {
+                      build job: 'sap-cli-test', parameters: [string(name: 'SAP_ASHOST', value: '35.174.22.86'), string(name: 'SAP_USER', value: 'DEVELOPER'), password(description: 'Input the SAP password', name: 'SAP_PASSWORD', value: <object of type hudson.util.Secret>), string(name: 'SAP_CLIENT', value: '001'), string(name: 'SAP_SSL', value: 'NO'), string(name: 'SAP_PORT', value: '8000'), string(name: 'OBJECT_NAME', value: 'ZTESTING_ABAPGIT'), string(name: 'OBJECT_TYPE', value: 'program')] 
+                  }
+                   
                 } // end stage clause
   
               
